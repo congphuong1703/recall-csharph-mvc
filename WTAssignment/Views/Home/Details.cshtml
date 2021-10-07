@@ -1,0 +1,55 @@
+﻿@model WTAssignment.Models.RecallSearch;
+@{
+    ViewData["Title"] = "Recall Infomation";
+}
+<div class="alert alert-info" role="alert">
+    <h4 class="text-danger">Recall Information</h4>
+    <hr />
+    <div class="row">
+        <div class="col-8">
+            <p><strong>Product: </strong>@Model.item.ItemName</p>
+            <p><strong>Unit Cost: </strong>$@Model.item.ItemCost</p>
+            <p><strong>Description: </strong>@Model.item.ItemDescription</p>
+        </div>
+        <div class="col-4">
+            <img src="@Model.item.ItemImage" style="width: 300px" alt="Item Image" />
+        </div>
+    </div>
+</div>
+<div class="mt-3">
+    <table class="table" id="recall-table">
+        <thead>
+            <tr>
+                <th scope="col">Customer Name</th>
+                <th scope="col">Contact Details</th>
+                <th scope="col">Address Line</th>
+                <th scope="col">Total Cost</th>
+                <th scope="col">Units Sold</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (RecallDetail item in Model.recallDetails)
+            {
+                <tr class="rows">
+                    <td>@item.customer.FirstName</td>
+                    <td>
+                        <p>
+                            @if (!string.IsNullOrEmpty(@item.customer.MainPhoneNumber))
+                            {
+                                @item.customer.MainPhoneNumber
+                            }
+                            else
+                            {
+                                @item.customer.SecondaryPhoneNumber
+                            }
+                        </p>
+                        <p>@item.customer.Email</p>
+                    </td>
+                    <td>@item.address.AddressLine</td>
+                    <td>$@item.totalCost</td>
+                    <td>@item.untisSold</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

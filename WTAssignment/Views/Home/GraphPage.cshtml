@@ -1,0 +1,139 @@
+﻿@model WTAssignment.Models.RecallSearch
+
+@{
+    ViewData["Title"] = "Graph Page";
+}
+
+@section Styles{
+    <style>
+        text {
+            font: 15px sans-serif;
+        }
+
+            text.value {
+                fill: white
+            }
+
+        rect.background {
+            fill: white;
+        }
+
+        .axis {
+            shape-rendering: crispEdges;
+        }
+
+            .axis path,
+            .axis line {
+                fill: none;
+                stroke: #000;
+            }
+    </style>
+}
+<div class="row">
+    <div class="col-12">
+        <div class="alert alert-warning text-center" role="alert">
+            <h4>Annual Sales Report</h4>
+            <hr />
+            <p><h6>Select a year to view the individual sales summary of each item</h6></p>
+        </div>
+    </div>
+    <div class="col-3">
+        <input type="text" id="searchYear" name="saleYear" value="" class="form-control"
+               list="yearList" placeholder="Sale Year..." aria-label="Sale Year" onchange="handleChangeYear()">
+        <datalist id="yearList">
+            @foreach (int item in Model.saleYears)
+            {
+                <option value="@item">@item</option>
+            }
+        </datalist>
+    </div>
+    <div class="col-12 mt-3" id="drawChart">
+    </div>
+</div>
+@section Scripts {
+    <script>
+        function handleChangeYear() {
+            var yearSelected = document.getElementById("searchYear").value;
+            console.log("year", yearSelected)
+            const url = "/Report/AnnualSalesData?year=" + yearSelected
+            fetch(url)
+                .then(response => response.json())
+                .then(data => drawChartBar(data))
+                .catch(error =>
+                    console.log("error", error))
+        }
+        function drawChartBar(data) {
+            triggerTransition();
+            setTimeout(function () {
+                d3.select("svg").remove();
+                var m = [30, 10, 10, 360],
+                    w = 1050 - m[1] - m[3],
+                    h = 930 - m[0] - m[2];
+
+                var format = d3.format(",.0f");
+
+                var x = d3.scaleLinear().range([0, w]),
+                    y = d3.scaleBand().rangeRound([0, h]).padding(0.1);
+
+                var xAxis = d3.axisBottom().scale(x).tickSize(-h),
+                    yAxis = d3.axisLeft().scale(y).tickSize(0);
+
+                var svg = d3.select("#drawChart").append("svg")
+                    .attr("width", w + m[1] + m[3])
+                    .attr("height", h + m[0] + m[2])
+                    .append("g")
+                    .attr("transform", "translate(" + m[3] + "," + m[0] + ")")
+                    ;
+
+                //sort by value.
+                data.forEach(function (d) { d.itemCount = +d.itemCount; });
+                data.sort(function (a, b) { return b.itemName - a.itemName; });
+
+                // Set the scale domain.
+                x.domain([0, d3.max(data, function (d) { return d.itemCount; })]);
+                y.domain(data.map(function (d) {
+                    return d.itemName;
+                }));
+
+                var bar = svg.selectAll("g.bar")
+                    .data(data)
+                    .enter().append("g")
+                    .attr("class", "bar")
+                    .attr("transform", function (d) { return "translate(0," + y(d.itemName) + ")"; });
+
+                bar.append("rect")
+                    .attr("width", function (d) { return x(d.itemCount); })
+                    .attr("height", y.bandwidth()).transition()
+                    .ease(d3.easeLinear)
+                    .duration(1000)
+                    .delay(500);
+
+                svg.selectAll("rect")
+                    .style("fill", function () { return d3.hsl(Math.random() * 300, 1, .4); });
+
+                bar.append("text")
+                    .attr("class", "value")
+                    .attr("x", function (d) { return x(d.itemCount) + 20; })
+                    .attr("y", y.bandwidth() / 2)
+                    .attr("dx", -20)
+                    .attr("dy", ".35em")
+                    .attr("text-anchor", "end")
+                    .text(function (d) { return format(d.itemCount); });
+
+                svg.append("g")
+                    .attr("class", "x axis")
+                    .call(xAxis);
+
+                svg.append("g")
+                    .attr("class", "y axis")
+                    .call(yAxis);
+                $('g .x').attr("text-anchor", "begin")
+            }, 2000);
+        }
+        function triggerTransition() {
+            d3.selectAll(".bar rect").transition()
+                .attr("width", "0")
+                .delay(1000).duration(1000);
+        }
+    </script>
+}

@@ -1,0 +1,93 @@
+﻿@model WTAssignment.Models.RecallSearch
+@{
+    ViewData["Title"] = "Recall Page";
+}
+<div class="alert alert-warning text-center" role="alert">
+    Item Recall Search
+</div>
+<div class="alert alert-danger" role="alert">
+    <h4>Warning</h4>
+    <hr />
+    <p><h6>All search activity on this page is logged</h6></p>
+    <p>This page is only to be used for quickly locating customers of a product impacted by a product recall.</p>
+    <p>Do not use this page to search and identify customers of regular shop purchase</p>
+</div>
+<form asp-controller="Home" asp-action="RecallPage" method="get">
+    <div class="row">
+        <div class="col">
+            <input type="text" id="searchItemName" name="itemName" asp-for="itemName" class="form-control" list="itemList" placeholder="Item Name" aria-label="Item Name">
+            <datalist class="itemList">
+                @foreach (string item in Model.itemNames)
+                {
+                    <option value="@item">@item</option>
+                }
+            </datalist>
+        </div>
+        <div class="col">
+            <input type="text" id="searchYear" name="saleYear" value="" asp-for="saleYear" class="form-control" 
+                   list="yearList" placeholder="Sale Year..." aria-label="Sale Year">
+            <datalist class="yearList">
+                @foreach (int item in Model.saleYears)
+                {
+                    <option value="@item">@item</option>
+                }
+            </datalist>
+        </div>
+        <div class="col">
+            <button id="search-btn" type="submit" class="btn btn-outline-primary">Search</button>
+        </div>
+    </div>
+</form>
+<div class="mt-3">
+    <table class="table table-hover" id="recall-table">
+        <thead>
+            <tr>
+                <th scope="col">Item Name</th>
+                <th scope="col">Item Description</th>
+                <th scope="col">Item Cost</th>
+                <th scope="col">Category</th>
+                <th scope="col">Units Sold</th>
+                <th scope="col">Customers</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (RecallDetail item in Model.recallDetails)
+            {
+                <tr class="rows" onclick="handleDetailRecall(@item.item.ItemId)">
+                    <td>@item.item.ItemName</td>
+                    <td>@item.item.ItemDescription</td>
+                    <td>$@item.item.ItemCost</td>
+                    <td>@item.category.CategoryName</td>
+                    <td>@item.untisSold</td>
+                    <td>@item.totalCustomers</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+@section Scripts  {
+    <script>
+        function handleDetailRecall(itemId) {
+            window.location.href = '/Home/Details?itemId=' + itemId;
+        }
+        var searchItem = document.querySelector("#searchItemName"),
+            itemList = document.querySelector(".itemList"),
+            yearList = document.querySelector(".yearList"),
+            searchYear = document.querySelector("#searchYear");
+
+        searchItem.addEventListener("keyup", (e) => {
+            if (e.target.value.length >= 2) {
+                itemList.setAttribute("id", "itemList");
+            } else {
+                itemList.setAttribute("id", "");
+            }
+        });
+        searchYear.addEventListener("keyup", (e) => {
+            if (e.target.value.length >= 2) {
+                yearList.setAttribute("id", "yearList");
+            } else {
+                yearList.setAttribute("id", "");
+            }
+        });
+    </script>
+}
